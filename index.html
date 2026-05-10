@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nul n'est censé ignorer la Loire</title>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+
+    .viewer {
+      width: 100vw;
+      height: 100vh;
+      overflow: auto;
+      cursor: grab;
+      touch-action: none;
+      background: #000;
+    }
+
+    .viewer:active {
+      cursor: grabbing;
+    }
+
+    .zoom-container {
+      width: fit-content;
+      height: fit-content;
+      transform-origin: top left;
+      transition: transform 0.05s linear;
+    }
+
+    img {
+      display: block;
+      max-width: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    .hint {
+      position: fixed;
+      bottom: 12px;
+      right: 16px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      z-index: 10;
+      background: rgba(0,0,0,0.4);
+      padding: 6px 10px;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="viewer" id="viewer">
+    <div class="zoom-container" id="zoomContainer">
+      <!-- Remplace "image.jpg" par le nom réel de ton image -->
+      <img src="image.png" alt="Nul n'est censé ignorer la Loire">
+    </div>
+  </div>
+
+  <div class="hint">
+    Molette : zoom • Double-clic : reset • Glisser : déplacement
+  </div>
+
+  <script>
+    const viewer = document.getElementById('viewer');
+    const zoomContainer = document.getElementById('zoomContainer');
+
+    let scale = 1;
+
+    viewer.addEventListener('wheel', (e) => {
+      e.preventDefault();
+
+      const zoomIntensity = 0.1;
+
+      if (e.deltaY < 0) {
+        scale *= (1 + zoomIntensity);
+      } else {
+        scale *= (1 - zoomIntensity);
+      }
+
+      scale = Math.min(Math.max(scale, 0.2), 20);
+
+      zoomContainer.style.transform = `scale(${scale})`;
+    }, { passive: false });
+
+    viewer.addEventListener('dblclick', () => {
+      scale = 1;
+      zoomContainer.style.transform = `scale(1)`;
+      viewer.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth'
+      });
+    });
+
+    // Drag souris
+    let isDown = false;
+    let startX;
+    let startY;
+    let scrollLeft;
+    let scrollTop;
+
+    viewer.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - viewer.offsetLeft;
+      startY = e.pageY - viewer.offsetTop;
+      scrollLeft = viewer.scrollLeft;
+      scrollTop = viewer.scrollTop;
+    });
+
+    viewer.addEventListener('mouseleave', () => {
+      isDown = false;
+    });
+
+    viewer.addEventListener('mouseup', () => {
+      isDown = false;
+    });
+
+    viewer.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+
+      e.preventDefault();
+
+      const x = e.pageX - viewer.offsetLeft;
+      const y = e.pageY - viewer.offsetTop;
+
+      const walkX = (x - startX);
+      const walkY = (y - startY);
+
+      viewer.scrollLeft = scrollLeft - walkX;
+      viewer.scrollTop = scrollTop - walkY;
+    });
+  </script>
+
+</body>
+</html>
